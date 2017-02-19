@@ -13397,6 +13397,10 @@ var _floor = __webpack_require__(482);
 
 var _floor2 = _interopRequireDefault(_floor);
 
+var _ball = __webpack_require__(483);
+
+var _ball2 = _interopRequireDefault(_ball);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -13404,6 +13408,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var toRawArray = function toRawArray(obj) {
+  var result = [];
+  if (obj === null || obj === undefined) return result;
+  for (var prop in obj) {
+    if (prop.endsWith('Pos')) {
+      result.push(obj[prop]);
+    }
+  }
+  return result;
+};
 
 var RootScene = function (_React$Component) {
   _inherits(RootScene, _React$Component);
@@ -13413,17 +13428,29 @@ var RootScene = function (_React$Component) {
 
     var _this = _possibleConstructorReturn(this, (RootScene.__proto__ || Object.getPrototypeOf(RootScene)).call(this, props));
 
-    _this.props = props;
+    _this.state = {
+      currentData: toRawArray(props.data)
+    };
     return _this;
   }
 
   _createClass(RootScene, [{
+    key: 'componentWillReceiveProps',
+    value: function componentWillReceiveProps(newProps) {
+      console.log(newProps.data);
+      this.setState({ currentData: toRawArray(newProps.data) });
+    }
+  }, {
     key: 'render',
     value: function render() {
       return _react2.default.createElement(
         _aframeReact.Scene,
         { fog: '' },
         _react2.default.createElement('a-assets', null),
+        this.state.currentData.map(function (pos) {
+          console.log(pos);
+          return _react2.default.createElement(_ball2.default, { x: pos[0], y: pos[1], z: pos[2] });
+        }),
         _react2.default.createElement(_aframeReact.Entity, { light: { type: 'ambient', color: '#888' } }),
         _react2.default.createElement(_aframeReact.Entity, { light: { type: 'directional', intensity: 0.5 }, position: '-1 1 0' }),
         _react2.default.createElement(_aframeReact.Entity, { light: { type: 'directional', intensity: 1 }, position: '1 1 0' }),
@@ -31191,6 +31218,8 @@ module.exports = function (module) {
 "use strict";
 
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 __webpack_require__(197);
 
 var _react = __webpack_require__(90);
@@ -31207,13 +31236,45 @@ var _rootScene2 = _interopRequireDefault(_rootScene);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var App = function App() {
-  return _react2.default.createElement(
-    'div',
-    null,
-    _react2.default.createElement(_rootScene2.default, null)
-  );
-};
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var App = function (_React$Component) {
+  _inherits(App, _React$Component);
+
+  function App(props) {
+    _classCallCheck(this, App);
+
+    var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
+
+    _this.state = {
+      currentData: undefined
+    };
+    _this.socket = io.connect(window.location.origin);
+    _this.socket.on('current', function (data) {
+      this.setState({ currentData: data });
+    }.bind(_this));
+    return _this;
+  }
+
+  _createClass(App, [{
+    key: 'render',
+    value: function render() {
+      return _react2.default.createElement(
+        'div',
+        null,
+        _react2.default.createElement(_rootScene2.default, { data: this.state.currentData })
+      );
+    }
+  }]);
+
+  return App;
+}(_react2.default.Component);
+
+;
 
 _reactDom2.default.render(_react2.default.createElement(App, null), document.getElementById('root'));
 
@@ -31273,6 +31334,32 @@ var Floor = function Floor(props) {
     rotation: '-90 0 0' });
 };
 exports.default = Floor;
+
+/***/ }),
+/* 483 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _react = __webpack_require__(90);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _aframeReact = __webpack_require__(139);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var Ball = function Ball(props) {
+  return _react2.default.createElement(_aframeReact.Entity, {
+    geometry: { primitive: 'sphere', radius: 3, position: props.x + ' ' + props.y + ' ' + props.z },
+    material: { shader: 'flat', src: '/resources/field.jpeg' } });
+};
+exports.default = Ball;
 
 /***/ })
 /******/ ]);
