@@ -10,7 +10,8 @@ const port = process.env.PORT || 9090;
 let currentData;
 let io;
 
-app.use(bodyParser.urlencoded({extended: false}))
+// app.use(bodyParser.urlencoded({extended: false}))
+app.use(bodyParser.urlencoded({extended: false, limit:'50mb', parameterLimit: 3000000}));
 app.use(express.static(staticPath));
 
 const createHierarchy = obj => {
