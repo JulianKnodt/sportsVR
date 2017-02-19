@@ -56,6 +56,7 @@ const fix = data => {
 
 app.post('/data', (req, res) => {
   // currentData = createHierarchy(fix(req.body));
+  process.stdout.write('data \n');
   currentData = fix(req.body);
   res.status(200).end();
   io.sockets.emit('current', {current: currentData});
