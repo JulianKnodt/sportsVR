@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const bodyParser = require('body-parser');
+const tree = require('./Tree.js');
 
 const staticPath = path.resolve(__dirname, './client');
 const port = process.env.PORT || 9090;
@@ -13,12 +14,31 @@ app.use(bodyParser.urlencoded({extended: false}))
 app.use(express.static(staticPath));
 
 const createHierarchy = obj => {
-  let filtered = {};
+  let rootNodes = [];
+  let unfixed = [];
   for (let prop in obj) {
     if (prop.endsWith('Par')) {
-      let newElem = prop.slice()
+      let name = prop.slice(0, -3);
+      if (obj[obj[prop]+'Par'] !== undefined) {
+        unfixed.push(new tree.DoublyLinkedTree({name: name, pos: obj[name+'Pos'], rot: obj[name+'Rot']}));
+      } else {
+        rootNodes.push(new tree.DoublyLinkedTree({name: name, pos: obj[name+'Pos'], rot: obj[name+'Rot']}));
+      }
     }
   }
+  console.log(unfixed);
+  while(unfixed.length > 0) {
+    unfixed.filter(node => {
+      let parent = rootNodes.find(rootNode => rootNode.find(n => n.name === obj[node.name+"Par"]));
+      if (parent) {
+        parent.graft(node);
+        return true;
+      } else {
+        return false;
+      }
+    });
+  }
+  return rootNodes;
 }
 
 const fix = data => {
@@ -36,9 +56,8 @@ const fix = data => {
 }
 
 app.post('/data', (req, res) => {
-  currentData = fix(req.body);
+  currentData = createHierarchy(fix(req.body));
   res.status(200).end();
-  console.log(currentData);
   io.sockets.emit('current', {current: currentData});
 });
 
