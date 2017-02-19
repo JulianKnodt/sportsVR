@@ -13682,7 +13682,7 @@ var RootScene = function (_React$Component) {
 
       return _react2.default.createElement(
         _aframeReact.Scene,
-        { fog: '10' },
+        { fog: 'type: linear; color: #000;' },
         _react2.default.createElement('a-assets', null),
         this.state.currentData.map(function (pos, i) {
           var _this2 = this;

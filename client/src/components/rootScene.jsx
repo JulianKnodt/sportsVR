@@ -47,7 +47,7 @@ export default class RootScene extends React.Component {
   }
   render () {
     return (
-    <Scene fog="10">
+    <Scene fog="type: linear; color: #000;">
       <a-assets></a-assets>
       {
         this.state.currentData
