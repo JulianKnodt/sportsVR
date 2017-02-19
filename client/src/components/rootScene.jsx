@@ -7,7 +7,9 @@ import Ball from './ball.jsx';
 
 const toRawArray = obj => {
   let result = [];
-  if (obj === null || obj === undefined) return result;
+  if (obj === null || obj === undefined) {
+    return result;
+  }
   for (let prop in obj) {
     if (prop.endsWith('Pos')) {
       result.push(obj[prop]);
@@ -24,7 +26,6 @@ export default class RootScene extends React.Component {
     };
   }
   componentWillReceiveProps(newProps) {
-    console.log(newProps.data);
     this.setState({currentData: toRawArray(newProps.data)});
   }
   render () {
@@ -33,11 +34,9 @@ export default class RootScene extends React.Component {
       <a-assets></a-assets>
       {
         this.state.currentData
-        .map(pos =>  {
-          console.log(pos);
-          return <Ball x={pos[0]} y={pos[1]} z={pos[2]}/>
-        })
+        .map((pos, i) => <Ball key={i} x={pos[0]} y={pos[1]} z={pos[2]}/>)
       }
+      <Ball x="10" y="3" z="0"/>
       <Entity light={{type: 'ambient', color: '#888'}}/>
       <Entity light={{type: 'directional', intensity: 0.5}} position='-1 1 0'/>
       <Entity light={{type: 'directional', intensity: 1}} position='1 1 0'/>

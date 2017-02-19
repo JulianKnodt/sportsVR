@@ -12,6 +12,15 @@ let io;
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(express.static(staticPath));
 
+const createHierarchy = obj => {
+  let filtered = {};
+  for (let prop in obj) {
+    if (prop.endsWith('Par')) {
+      let newElem = prop.slice()
+    }
+  }
+}
+
 const fix = data => {
   let result = {};
   for (let prop in data) {

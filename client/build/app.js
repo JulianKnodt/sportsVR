@@ -13411,7 +13411,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var toRawArray = function toRawArray(obj) {
   var result = [];
-  if (obj === null || obj === undefined) return result;
+  if (obj === null || obj === undefined) {
+    return result;
+  }
   for (var prop in obj) {
     if (prop.endsWith('Pos')) {
       result.push(obj[prop]);
@@ -13437,7 +13439,6 @@ var RootScene = function (_React$Component) {
   _createClass(RootScene, [{
     key: 'componentWillReceiveProps',
     value: function componentWillReceiveProps(newProps) {
-      console.log(newProps.data);
       this.setState({ currentData: toRawArray(newProps.data) });
     }
   }, {
@@ -13447,10 +13448,10 @@ var RootScene = function (_React$Component) {
         _aframeReact.Scene,
         { fog: '' },
         _react2.default.createElement('a-assets', null),
-        this.state.currentData.map(function (pos) {
-          console.log(pos);
-          return _react2.default.createElement(_ball2.default, { x: pos[0], y: pos[1], z: pos[2] });
+        this.state.currentData.map(function (pos, i) {
+          return _react2.default.createElement(_ball2.default, { key: i, x: pos[0], y: pos[1], z: pos[2] });
         }),
+        _react2.default.createElement(_ball2.default, { x: '10', y: '3', z: '0' }),
         _react2.default.createElement(_aframeReact.Entity, { light: { type: 'ambient', color: '#888' } }),
         _react2.default.createElement(_aframeReact.Entity, { light: { type: 'directional', intensity: 0.5 }, position: '-1 1 0' }),
         _react2.default.createElement(_aframeReact.Entity, { light: { type: 'directional', intensity: 1 }, position: '1 1 0' }),
@@ -13526,7 +13527,12 @@ var Camera = function Camera(props) {
   return _react2.default.createElement(
     _aframeReact.Entity,
     null,
-    _react2.default.createElement(_aframeReact.Entity, _extends({ camera: '', 'look-controls': '', 'wasd-controls': { acceleration: 360 } }, props))
+    _react2.default.createElement(_aframeReact.Entity, _extends({
+      camera: { userHeight: .5 },
+      'look-controls': '',
+      'wasd-controls': { acceleration: 360 },
+      position: '0 3 0'
+    }, props))
   );
 };
 
@@ -31255,7 +31261,7 @@ var App = function (_React$Component) {
     };
     _this.socket = io.connect(window.location.origin);
     _this.socket.on('current', function (data) {
-      this.setState({ currentData: data });
+      this.setState({ currentData: data.current });
     }.bind(_this));
     return _this;
   }
@@ -31330,7 +31336,7 @@ var Floor = function Floor(props) {
     geometry: { primitive: 'plane' },
     material: { shader: 'flat', src: props.src, side: 'double' },
     scale: '360 140 1',
-    position: '0 -5 0',
+    position: '0 0 0',
     rotation: '-90 0 0' });
 };
 exports.default = Floor;
@@ -31356,8 +31362,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var Ball = function Ball(props) {
   return _react2.default.createElement(_aframeReact.Entity, {
-    geometry: { primitive: 'sphere', radius: 3, position: props.x + ' ' + props.y + ' ' + props.z },
-    material: { shader: 'flat', src: '/resources/field.jpeg' } });
+    geometry: { primitive: 'sphere', radius: .1 },
+    material: { shader: 'flat', src: '/resources/red.jpeg' },
+    position: props.x * 2 + ' ' + props.y * 2 + ' ' + props.z * 2 });
 };
 exports.default = Ball;
 

@@ -12,7 +12,7 @@ class App extends React.Component {
     }
     this.socket = io.connect(window.location.origin);
     this.socket.on('current', function(data) {
-      this.setState({currentData: data});
+      this.setState({currentData: data.current});
     }.bind(this));
   }
   render() {
