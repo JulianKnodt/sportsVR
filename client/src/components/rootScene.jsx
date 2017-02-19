@@ -42,13 +42,12 @@ export default class RootScene extends React.Component {
       this.setState({selected: this.state.selected.filter(e => e !== newElem)})
     }
   }
-  removeSelected(newElem) {
-
+  removeSelected(newElem, index) {
+    this.setState({selected: this.state.selected.filter((e, i) => i !== index)});
   }
   render () {
     return (
-    <Scene fog="">
-      <div style={{position: 'fixed'}}>HERE</div>
+    <Scene fog="10">
       <a-assets></a-assets>
       {
         this.state.currentData
@@ -59,7 +58,8 @@ export default class RootScene extends React.Component {
         this.state.selected
         .map((pos, i) => <Ball key={i} x={pos[0]} y={pos[1]} z={pos[2]}
           material='color: blue'
-          geometry={{primitive: 'sphere', radius: .2}}/>)
+          geometry={{primitive: 'sphere', radius: .2}}
+          onClick={() => this.removeSelected(pos, i)}/>)
       }
       <Ball x={3} y={3} z={3} onClick={() => this.addSelected([3, 3, 3])}/>
       <Entity light={{type: 'ambient', color: '#888'}}/>

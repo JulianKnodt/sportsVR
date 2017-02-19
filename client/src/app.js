@@ -2,6 +2,7 @@ import 'babel-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import RootScene from './components/rootScene.jsx';
+import OpeningScreen from './components/openingScreen.jsx';
 import Structures from '../../Structures.js';
 
 const findAngle = (A,B,C) => {
@@ -19,6 +20,7 @@ class App extends React.Component {
     this.forward = new Structures.Queue();
     this.state = {
       paused: false,
+      opened: false,
       currentData: undefined,
       selectedPoints: []
     }
@@ -105,15 +107,24 @@ class App extends React.Component {
     this.setState({selectedPoints: cb(this.state.selectedPoints)});
     console.log(this.state.selectedPoints)
   }
+  start () {
+    this.setState({opened: true});
+  }
   render() {
     return (
       <div>
-        <RootScene
-        data={this.state.currentData}
-        setPause={this.setPause.bind(this)}
-        isPaused={this.state.isPaused}
-        selectedPoints={this.state.selectedPoints}
-        setSelectedPoints={this.updateSelectedPoints.bind(this)}/>
+        {
+          this.state.opened ? 
+          <RootScene
+          data={this.state.currentData}
+          setPause={this.setPause.bind(this)}
+          isPaused={this.state.isPaused}
+          selectedPoints={this.state.selectedPoints}
+          setSelectedPoints={this.updateSelectedPoints.bind(this)}/>
+          :
+          <OpeningScreen
+          start={this.start.bind(this)}/>
+        }
       </div>
     );
   }
