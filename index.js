@@ -26,7 +26,6 @@ const createHierarchy = obj => {
       }
     }
   }
-  console.log(unfixed);
   while(unfixed.length > 0) {
     unfixed.filter(node => {
       let parent = rootNodes.find(rootNode => rootNode.find(n => n.name === obj[node.name+"Par"]));
@@ -56,7 +55,8 @@ const fix = data => {
 }
 
 app.post('/data', (req, res) => {
-  currentData = createHierarchy(fix(req.body));
+  // currentData = createHierarchy(fix(req.body));
+  currentData = fix(req.body);
   res.status(200).end();
   io.sockets.emit('current', {current: currentData});
 });

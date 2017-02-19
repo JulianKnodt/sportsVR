@@ -22,21 +22,46 @@ export default class RootScene extends React.Component {
   constructor (props) {
     super(props);
     this.state = {
-      currentData: toRawArray(props.data)
+      currentData: toRawArray(props.data),
+      selected: []
     };
+    this.props = props;
   }
   componentWillReceiveProps(newProps) {
-    this.setState({currentData: toRawArray(newProps.data)});
+    let raw = toRawArray(newProps.data);
+    if (raw !== this.state.currentData) {
+      this.setState({currentData: raw});
+    } else if (newProps.selectedPoints !== this.state.selected) {
+      this.setState({selected: newProps.selectedPoints});
+    }
+  }
+  addSelected(newElem) {
+    if (!(newElem in this.state.selected)) {
+      this.setState({selected: this.state.selected.concat([newElem])});
+    } else {
+      this.setState({selected: this.state.selected.filter(e => e !== newElem)})
+    }
+  }
+  removeSelected(newElem) {
+
   }
   render () {
     return (
     <Scene fog="">
+      <div style={{position: 'fixed'}}>HERE</div>
       <a-assets></a-assets>
       {
         this.state.currentData
-        .map((pos, i) => <Ball key={i} x={pos[0]} y={pos[1]} z={pos[2]}/>)
+        .map(function(pos, i) 
+        {return <Ball key={i} x={pos[0]} y={pos[1]} z={pos[2]} onClick={() => this.addSelected(pos)}/>}.bind(this))
       }
-      <Ball x="10" y="3" z="0"/>
+      {
+        this.state.selected
+        .map((pos, i) => <Ball key={i} x={pos[0]} y={pos[1]} z={pos[2]}
+          material='color: blue'
+          geometry={{primitive: 'sphere', radius: .2}}/>)
+      }
+      <Ball x={3} y={3} z={3} onClick={() => this.addSelected([3, 3, 3])}/>
       <Entity light={{type: 'ambient', color: '#888'}}/>
       <Entity light={{type: 'directional', intensity: 0.5}} position='-1 1 0'/>
       <Entity light={{type: 'directional', intensity: 1}} position='1 1 0'/>
@@ -46,3 +71,4 @@ export default class RootScene extends React.Component {
     </Scene>);
   }
 }
+      // <Ball x="10" y="3" z="0"/> //testball
