@@ -69,7 +69,9 @@ export default class RootScene extends React.Component {
       <Sky src="/resources/sky.jpeg"/>
       {
         this.state.currentData !== undefined ?
-        this.state.currentData.map((rootObject,i) => 
+        this.state.currentData
+        .filter(x => x !== undefined)
+        .map((rootObject,i) => 
             <GameObject key={i} root={rootObject}/>
           )
         :

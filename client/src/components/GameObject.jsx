@@ -6,7 +6,6 @@ const y = arr => arr[1];
 const z = arr => arr[2];
 const GameObject = props => {
   //expecting prop root
-  console.log(props);
   let depth = props.depth || 0;
   let value = props.root.value;
   let pos = value.pos;

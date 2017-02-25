@@ -77,4 +77,3 @@ io.on('connection', (socket) => {
   socket.emit('current', JSON.stringify({current: currentData}));
 });
 
-
