@@ -46,7 +46,7 @@ export default class RootScene extends React.Component {
     this.setState({selected: this.state.selected.filter((e, i) => i !== index)});
   }
   componentDidMount() {
-    window.addEventListener("keydown", (e) => {
+    window.addEventListener("click", (e) => {
       let scene = document.getElementById('vr_scene');
       if (e.which === 13) {
         scene.enterVR();

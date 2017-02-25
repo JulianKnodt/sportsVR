@@ -25681,7 +25681,7 @@ var RootScene = function (_React$Component) {
   }, {
     key: 'componentDidMount',
     value: function componentDidMount() {
-      window.addEventListener("keydown", function (e) {
+      window.addEventListener("click", function (e) {
         var scene = document.getElementById('vr_scene');
         if (e.which === 13) {
           scene.enterVR();
