@@ -3,11 +3,12 @@ const app = express();
 const path = require('path');
 const bodyParser = require('body-parser');
 const tree = require('./Tree.js');
+const exJSON = require('exjson');
 
 const staticPath = path.resolve(__dirname, './client');
 const port = process.env.PORT || 9090;
 
-let currentData;
+let currentData = [];
 let io;
 
 // app.use(bodyParser.urlencoded({extended: false}))
@@ -20,21 +21,27 @@ const createHierarchy = obj => {
   for (let prop in obj) {
     if (prop.endsWith('Par')) {
       let name = prop.slice(0, -3);
-      if (obj[obj[prop]+'Par'] !== undefined) {
-        unfixed.push(new tree.DoublyLinkedTree({name: name, pos: obj[name+'Pos'], rot: obj[name+'Rot']}));
+      //name of current elem
+      let parent = obj[name+'Par'];
+      if (obj[parent+'Par'] !== undefined) {
+        unfixed.push(new tree.Tree({name: name, pos: obj[name+'Pos'], rot: obj[name+'Rot']}));
       } else {
-        rootNodes.push(new tree.DoublyLinkedTree({name: name, pos: obj[name+'Pos'], rot: obj[name+'Rot']}));
+        rootNodes.push(new tree.Tree({name: name, pos: obj[name+'Pos'], rot: obj[name+'Rot']}));
       }
     }
   }
   while(unfixed.length > 0) {
-    unfixed.filter(node => {
-      let parent = rootNodes.find(rootNode => rootNode.find(n => n.name === obj[node.name+"Par"]));
+    unfixed = unfixed.filter(node => {
+      let parent = rootNodes.map(rootNode => {
+        return rootNode.find(n => {
+          return n.name === obj[node.value.name+"Par"]
+        });
+      }).filter(e => e !== undefined)[0];
       if (parent) {
         parent.graft(node);
-        return true;
-      } else {
         return false;
+      } else {
+        return true;
       }
     });
   }
@@ -56,11 +63,9 @@ const fix = data => {
 }
 
 app.post('/data', (req, res) => {
-  // currentData = createHierarchy(fix(req.body));
-  process.stdout.write('data \n');
-  currentData = fix(req.body);
+  currentData = createHierarchy(fix(req.body));
   res.status(200).end();
-  io.sockets.emit('current', {current: currentData});
+  io.sockets.emit('current', JSON.stringify({current: currentData}));
 });
 
 let server = app.listen(port, () => {
@@ -69,7 +74,7 @@ let server = app.listen(port, () => {
 
 io = require('socket.io')(server);
 io.on('connection', (socket) => {
-  socket.emit('current', {current: currentData});
+  socket.emit('current', JSON.stringify({current: currentData}));
 });
 
 

@@ -4,6 +4,8 @@ import ReactDOM from 'react-dom';
 import RootScene from './components/rootScene.jsx';
 import OpeningScreen from './components/openingScreen.jsx';
 import Structures from '../../Structures.js';
+import aframeMeshlineComponent from 'aframe-meshline-component';
+import exJSON from 'exjson';
 
 const findAngle = (A,B,C) => {
     var AB = Math.sqrt(Math.pow(B.x-A.x,2) + Math.pow(B.y-A.y,2) + Math.pow(B.z-A.z,2));    
@@ -26,10 +28,11 @@ class App extends React.Component {
     }
     this.socket = io.connect(window.location.origin);
     this.socket.on('current', function(data) {
+      data = JSON.parse(data);
       if (!this.state.currentData) {
-        this.setState({currentData: data.current});
+        this.setState({currentData: data.current || []});
       } else {
-        this.forward.enqueue(data.current);
+        this.forward.enqueue(data.current || []);
         if (!this.state.paused) {
           this.go();
         }
@@ -46,7 +49,7 @@ class App extends React.Component {
         e.preventDefault();
       } else if (key === 69) {
         //right e-key
-        console.log('proceed to next');
+        console.log('proceed');
         this.go();
       } else if (key === 32) {
         //pause
@@ -56,49 +59,53 @@ class App extends React.Component {
     }.bind(this);
   }
   go (steps=1) {
-    let next;
-    let poss;
-    steps--;
-    if (this.state.currentData) {
-      this.back.push(this.state.currentData);
-    }
-    while(steps --) {
-      if (this.backFill.length) {
-        poss = this.backFill.pop();
-        next = poss || next;
-        this.back.push(next);
-      } else {
-        poss = this.forward.dequeue();
-        next = poss || next;
-        if (next) {
+    if (this.forward.length > 0) {
+      let next;
+      let poss;
+      steps--;
+      if (this.state.currentData) {
+        this.back.push(this.state.currentData);
+      }
+      while(steps --) {
+        if (this.backFill.length) {
+          poss = this.backFill.pop();
+          next = poss || next;
           this.back.push(next);
+        } else {
+          poss = this.forward.dequeue();
+          next = poss || next;
+          if (next) {
+            this.back.push(next);
+          }
         }
       }
+      poss = this.backFill.length ? this.backFill.pop() : this.forward.dequeue();
+      next = next || poss;
+      if (this.back.length > 500) {
+        this.back = this.back.pull(400);
+      }
+      this.setState({currentData: next});
+      return next;
     }
-    poss = this.backFill.length ? this.backFill.pop() : this.forward.dequeue();
-    next = next || poss;
-    if (this.back.length > 500) {
-      this.back = this.back.pull(400);
-    }
-    this.setState({currentData: next});
-    return next;
   }
   prev(steps=1) {
-    let prev;
-    let poss;
-    steps --;
-    this.backFill.push(this.state.currentData);
-    while (steps --) {
+    if (this.back.length > 0) {
+      let prev;
+      let poss;
+      steps --;
+      this.backFill.push(this.state.currentData);
+      while (steps --) {
+        poss = this.back.pop();
+        prev = poss || prev;
+        if(prev) {
+          this.backFill.push(prev);
+        }
+      }
       poss = this.back.pop();
       prev = poss || prev;
-      if(prev) {
-        this.backFill.push(prev);
-      }
+      this.setState({currentData: prev});
+      return prev;
     }
-    poss = this.back.pop();
-    prev = poss || prev;
-    this.setState({currentData: prev});
-    return prev;
   }
   setPause (bool) {
     this.setState({paused: bool});

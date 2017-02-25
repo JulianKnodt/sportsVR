@@ -1,6 +1,8 @@
 import React from 'react';
 import { Entity } from 'aframe-react';
 const Ball = props => {
+  let object = props.root;
+  let pos = object.value.pos;
   let color = 'color: red';
   const extraProps = AFRAME.utils.extend({}, props);
   delete extraProps.color;
@@ -8,7 +10,7 @@ const Ball = props => {
   return (<Entity 
   geometry={{primitive: 'sphere', radius: .1}}
   material={color}
-  position={`${props.x*2} ${props.y*2} ${props.z*2}`}
+  position={`${pos[0]} ${pos[1]} ${pos[2]}`}
   {...extraProps}/>);
 };
 export default Ball;

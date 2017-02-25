@@ -18,7 +18,7 @@ class Tree {
     } else if (this.value === value) {
       return this;
     } else {
-      let found = this.children.map(child => child.find(value)).filter(e => e !== undefined);
+      let found = this.children.map(child => child === this ? undefined : child.find(value)).filter(e => e !== undefined);
       return found.length === 0 ? undefined : found[0];
     }
   }
@@ -64,6 +64,13 @@ class Tree {
   get size () {
     return 1 + this.children.reduce((total, next) => total + next.length, 0);
   }
+  readable (_depth = 0, side=undefined) {
+    let retval = _depth === 0 ? '' : ('    ').repeat(_depth) + '➤';
+    let positioning = side === undefined ? 'ROOT' : (side === RIGHT ? '⯅' : '⯆');
+    console.log(retval, this.value, positioning);
+    if (this.left) this.left.readable(_depth +1, LEFT);
+    if (this.right) this.right.readable(_depth +1, RIGHT);
+  }
 }
 
 class DoublyLinkedTree extends Tree {
@@ -71,6 +78,15 @@ class DoublyLinkedTree extends Tree {
     super(value);
     this.parent = undefined;
     this.length = +!!value;
+  }
+  graft (...forest) {
+    forest.forEach(tree => {
+      if (tree instanceof DoublyLinkedTree || tree instanceof Tree) {
+        this.insert(tree.value);
+      } else {
+        this.insert(tree);
+      }
+    });
   }
   get uncle () {
     let parent = this.parent;
@@ -97,6 +113,11 @@ class DoublyLinkedTree extends Tree {
     }
     this.children.push(child);
     return child;
+  }
+  readable (_depth = 0) {
+    let retval = (_depth === 0 ? 'RT' : (' ').repeat(_depth) + '➤');
+    console.log(retval, JSOn.stringify(this.value), _depth + ' deep');
+    if (this.children) this.children.forEach(child => child.readable(_depth+1));
   }
 };
 

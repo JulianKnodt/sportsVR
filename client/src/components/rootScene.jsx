@@ -4,6 +4,7 @@ import Camera from './view.jsx';
 import Sky from './sky.jsx';
 import Floor from './floor.jsx';
 import Ball from './ball.jsx';
+import GameObject from './GameObject.jsx';
 
 const toRawArray = obj => {
   let result = [];
@@ -22,15 +23,14 @@ export default class RootScene extends React.Component {
   constructor (props) {
     super(props);
     this.state = {
-      currentData: toRawArray(props.data),
+      currentData: props.data || [],
       selected: []
     };
     this.props = props;
   }
   componentWillReceiveProps(newProps) {
-    let raw = toRawArray(newProps.data);
-    if (raw !== this.state.currentData) {
-      this.setState({currentData: raw});
+    if (newProps.data !== this.state.currentData) {
+      this.setState({currentData: newProps.data});
     } else if (newProps.selectedPoints !== this.state.selected) {
       this.setState({selected: newProps.selectedPoints});
     }
@@ -50,23 +50,31 @@ export default class RootScene extends React.Component {
     <Scene fog="type: linear; color: #000;">
       <a-assets></a-assets>
       {
-        this.state.currentData
-        .map(function(pos, i) 
-        {return <Ball key={i} x={pos[0]} y={pos[1]} z={pos[2]} onClick={() => this.addSelected(pos)}/>}.bind(this))
+        // this.state.currentData
+        // .filter(x => x !== undefined)
+        // .map(function(rootObject, i) 
+        // {return <Ball key={i} root={rootObject} onClick={() => this.addSelected(pos)}/>}.bind(this))
       }
       {
-        this.state.selected
-        .map((pos, i) => <Ball key={i} x={pos[0]} y={pos[1]} z={pos[2]}
-          material='color: blue'
-          geometry={{primitive: 'sphere', radius: .2}}
-          onClick={() => this.removeSelected(pos, i)}/>)
+        // this.state.selected
+        // .map((pos, i) => <Ball key={i} x={pos[0]} y={pos[1]} z={pos[2]}
+        //   material='color: blue'
+        //   geometry={{primitive: 'sphere', radius: .2}}
+        //   onClick={() => this.removeSelected(pos, i)}/>)
       }
-      <Ball x={3} y={3} z={3} onClick={() => this.addSelected([3, 3, 3])}/>
       <Entity light={{type: 'ambient', color: '#888'}}/>
       <Entity light={{type: 'directional', intensity: 0.5}} position='-1 1 0'/>
       <Entity light={{type: 'directional', intensity: 1}} position='1 1 0'/>
       <Floor src="/resources/field.png"/>
       <Sky src="/resources/sky.jpeg"/>
+      {
+        this.state.currentData !== undefined ?
+        this.state.currentData.map((rootObject,i) => 
+            <GameObject key={i} root={rootObject}/>
+          )
+        :
+        ''
+      }
       <Camera/>
     </Scene>);
   }
