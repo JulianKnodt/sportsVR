@@ -25683,9 +25683,7 @@ var RootScene = function (_React$Component) {
     value: function componentDidMount() {
       window.addEventListener("click", function (e) {
         var scene = document.getElementById('vr_scene');
-        if (e.which === 13) {
-          scene.enterVR();
-        }
+        scene.enterVR();
       });
     }
   }, {
@@ -25693,7 +25691,7 @@ var RootScene = function (_React$Component) {
     value: function render() {
       return _react2.default.createElement(
         _aframeReact.Scene,
-        { id: 'vr_scene', fog: 'type: linear; color: #000;' },
+        { id: 'vr_scene' },
         _react2.default.createElement('a-assets', null),
         _react2.default.createElement(_aframeReact.Entity, { light: { type: 'ambient', color: '#888' } }),
         _react2.default.createElement(_aframeReact.Entity, { light: { type: 'directional', intensity: 0.5 }, position: '-1 1 0' }),

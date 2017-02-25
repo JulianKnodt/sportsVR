@@ -48,14 +48,12 @@ export default class RootScene extends React.Component {
   componentDidMount() {
     window.addEventListener("click", (e) => {
       let scene = document.getElementById('vr_scene');
-      if (e.which === 13) {
-        scene.enterVR();
-      }
+      scene.enterVR();
     });
   }
   render () {
     return (
-    <Scene id="vr_scene" fog="type: linear; color: #000;">
+    <Scene id="vr_scene">
       <a-assets></a-assets>
       {
         // this.state.currentData
