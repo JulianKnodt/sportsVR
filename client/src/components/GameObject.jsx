@@ -19,7 +19,7 @@ const GameObject = props => {
         .filter(child => !child.value.name.startsWith('Bone'))
         .map(child => child.value.pos)
         .map((p, i) => 
-          <Entity key={i} meshline={`lineWidth: ${20-depth}; path: ${s(x(pos))} ${s(y(pos))} ${s(z(pos))}, ${s(x(p))} ${s(y(p))} ${s(z(p))};`}/>
+          <Entity key={i} meshline={`lineWidth: ${5}; path: ${s(x(pos))} ${s(y(pos))} ${s(z(pos))}, ${s(x(p))} ${s(y(p))} ${s(z(p))};`}/>
         )
       }
       {

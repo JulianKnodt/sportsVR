@@ -25679,11 +25679,21 @@ var RootScene = function (_React$Component) {
         }) });
     }
   }, {
+    key: 'componentDidMount',
+    value: function componentDidMount() {
+      window.addEventListener("keydown", function (e) {
+        var scene = document.getElementById('vr_scene');
+        if (e.which === 13) {
+          scene.enterVR();
+        }
+      });
+    }
+  }, {
     key: 'render',
     value: function render() {
       return _react2.default.createElement(
         _aframeReact.Scene,
-        { fog: 'type: linear; color: #000;' },
+        { id: 'vr_scene', fog: 'type: linear; color: #000;' },
         _react2.default.createElement('a-assets', null),
         _react2.default.createElement(_aframeReact.Entity, { light: { type: 'ambient', color: '#888' } }),
         _react2.default.createElement(_aframeReact.Entity, { light: { type: 'directional', intensity: 0.5 }, position: '-1 1 0' }),
@@ -27926,7 +27936,7 @@ var GameObject = function GameObject(props) {
     }).map(function (child) {
       return child.value.pos;
     }).map(function (p, i) {
-      return _react2.default.createElement(_aframeReact.Entity, { key: i, meshline: 'lineWidth: ' + (20 - depth) + '; path: ' + s(x(pos)) + ' ' + s(y(pos)) + ' ' + s(z(pos)) + ', ' + s(x(p)) + ' ' + s(y(p)) + ' ' + s(z(p)) + ';' });
+      return _react2.default.createElement(_aframeReact.Entity, { key: i, meshline: 'lineWidth: ' + 5 + '; path: ' + s(x(pos)) + ' ' + s(y(pos)) + ' ' + s(z(pos)) + ', ' + s(x(p)) + ' ' + s(y(p)) + ' ' + s(z(p)) + ';' });
     }),
     children.filter(function (child) {
       return child !== undefined;
@@ -62577,7 +62587,7 @@ var App = function (_React$Component) {
   _createClass(App, [{
     key: 'componentDidMount',
     value: function componentDidMount() {
-      window.onkeydown = function (e) {
+      window.addEventListener('keydown', function (e) {
         var key = e.which;
         if (key === 81 && this.state.paused) {
           //left q-key
@@ -62593,7 +62603,7 @@ var App = function (_React$Component) {
           this.setPause(!this.state.paused);
           console.log(this.state.paused ? 'paused' : 'unpaused');
         }
-      }.bind(this);
+      }.bind(this));
     }
   }, {
     key: 'go',
@@ -62661,7 +62671,6 @@ var App = function (_React$Component) {
     key: 'updateSelectedPoints',
     value: function updateSelectedPoints(cb) {
       this.setState({ selectedPoints: cb(this.state.selectedPoints) });
-      console.log(this.state.selectedPoints);
     }
   }, {
     key: 'start',
@@ -62671,17 +62680,21 @@ var App = function (_React$Component) {
   }, {
     key: 'render',
     value: function render() {
-      return _react2.default.createElement(
-        'div',
-        null,
-        this.state.opened ? _react2.default.createElement(_rootScene2.default, {
+      if (this.state.opened) {
+        return _react2.default.createElement(_rootScene2.default, {
           data: this.state.currentData,
           setPause: this.setPause.bind(this),
           isPaused: this.state.isPaused,
           selectedPoints: this.state.selectedPoints,
-          setSelectedPoints: this.updateSelectedPoints.bind(this) }) : _react2.default.createElement(_openingScreen2.default, {
-          start: this.start.bind(this) })
-      );
+          setSelectedPoints: this.updateSelectedPoints.bind(this) });
+      } else {
+        return _react2.default.createElement(
+          'div',
+          null,
+          _react2.default.createElement(_openingScreen2.default, {
+            start: this.start.bind(this) })
+        );
+      }
     }
   }]);
 

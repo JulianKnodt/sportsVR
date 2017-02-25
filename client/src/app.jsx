@@ -40,7 +40,7 @@ class App extends React.Component {
     }.bind(this));
   }
   componentDidMount () {
-    window.onkeydown =function(e) {
+    window.addEventListener('keydown', function(e) {
       let key = e.which;
       if (key === 81 && this.state.paused) {
         //left q-key
@@ -56,7 +56,7 @@ class App extends React.Component {
         this.setPause(!this.state.paused);
         console.log(this.state.paused ? 'paused' : 'unpaused');
       }
-    }.bind(this);
+    }.bind(this));
   }
   go (steps=1) {
     if (this.forward.length > 0) {
@@ -112,28 +112,25 @@ class App extends React.Component {
   }
   updateSelectedPoints(cb) {
     this.setState({selectedPoints: cb(this.state.selectedPoints)});
-    console.log(this.state.selectedPoints)
   }
   start () {
     this.setState({opened: true});
   }
   render() {
-    return (
-      <div>
-        {
-          this.state.opened ? 
-          <RootScene
-          data={this.state.currentData}
-          setPause={this.setPause.bind(this)}
-          isPaused={this.state.isPaused}
-          selectedPoints={this.state.selectedPoints}
-          setSelectedPoints={this.updateSelectedPoints.bind(this)}/>
-          :
+    if(this.state.opened) {
+      return (<RootScene
+      data={this.state.currentData}
+      setPause={this.setPause.bind(this)}
+      isPaused={this.state.isPaused}
+      selectedPoints={this.state.selectedPoints}
+      setSelectedPoints={this.updateSelectedPoints.bind(this)}/>)
+    } else {
+      return (
+        <div>
           <OpeningScreen
           start={this.start.bind(this)}/>
-        }
-      </div>
-    );
+        </div>);
+    }
   }
 };
 

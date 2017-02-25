@@ -45,9 +45,17 @@ export default class RootScene extends React.Component {
   removeSelected(newElem, index) {
     this.setState({selected: this.state.selected.filter((e, i) => i !== index)});
   }
+  componentDidMount() {
+    window.addEventListener("keydown", (e) => {
+      let scene = document.getElementById('vr_scene');
+      if (e.which === 13) {
+        scene.enterVR();
+      }
+    });
+  }
   render () {
     return (
-    <Scene fog="type: linear; color: #000;">
+    <Scene id="vr_scene" fog="type: linear; color: #000;">
       <a-assets></a-assets>
       {
         // this.state.currentData
