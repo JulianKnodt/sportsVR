@@ -71,7 +71,7 @@ class App extends React.Component {
       } else if (key === 82 && path.length === 0) {
         let data = this.back.storage.concat(...this.backFill.storage).concat([this.state.currentData]);
         this.socket.emit("save", exJSON.stringify(data), index => {
-          notify.show(`Your 3D self was saved at ${window.location.origin + '/' + index.url} for ${index.duration/60000} minutes!`, "success");
+          notify.show(`Saved at ${window.location.origin + '/' + index.url} for ${index.duration/60000} min!`, "success");
         });
       }
     }.bind(this));
