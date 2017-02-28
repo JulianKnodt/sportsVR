@@ -25653,7 +25653,8 @@ var RootScene = function (_React$Component) {
 
     _this.state = {
       currentData: props.data || [],
-      selected: []
+      selected: [],
+      renderText: false
     };
     _this.props = props;
     return _this;
@@ -25703,14 +25704,26 @@ var RootScene = function (_React$Component) {
           }
         });
       }
+      window.addEventListener('keydown', function (e) {
+        if (e.which === 88) {
+          this.setState({ renderText: !this.state.renderText });
+        }
+      }.bind(this));
     }
   }, {
     key: 'render',
     value: function render() {
+      var _this2 = this;
+
       return _react2.default.createElement(
         'a-scene',
-        { id: 'vr_scene' },
-        _react2.default.createElement('a-assets', null),
+        { id: 'vr_scene', pool__enemy: 'size : 100; dynamic: true', 'vr-mode-ui': '' },
+        _react2.default.createElement(
+          'a-assets',
+          null,
+          _react2.default.createElement('a-asset-item', { id: 'football-obj', src: '/resources/AmericanFootball.obj' }),
+          _react2.default.createElement('a-asset-item', { id: 'football-mtl', src: '/resources/AmericanFootball.obj.mtl' })
+        ),
         _react2.default.createElement(_view2.default, null),
         _react2.default.createElement(_aframeReact.Entity, { light: { type: 'ambient', color: '#888' } }),
         _react2.default.createElement(_aframeReact.Entity, { light: { type: 'directional', intensity: 0.5 }, position: '-1 1 0' }),
@@ -25720,7 +25733,14 @@ var RootScene = function (_React$Component) {
         this.state.currentData !== undefined ? this.state.currentData.filter(function (x) {
           return x !== undefined;
         }).map(function (rootObject, i) {
-          return _react2.default.createElement(_GameObject2.default, { key: i, root: rootObject });
+          return _react2.default.createElement(_GameObject2.default, { key: i, root: rootObject, isRoot: true, renderText: _this2.state.renderText });
+        }) : '',
+        this.state.currentData !== undefined ? this.state.currentData.filter(function (x) {
+          return x !== undefined;
+        }).filter(function (x) {
+          return x.value.name.startsWith('Football');
+        }).map(function (football) {
+          return _react2.default.createElement(_aframeReact.Entity, { 'obj-model': 'obj: #football-obj; mtl: #football-mtl' });
         }) : ''
       );
     }
@@ -25828,7 +25848,7 @@ class exJSON {
         return obj;
       }
     } else if (Array.isArray(obj)) {
-      return obj.map(exJSON._serializeSingular);
+      return obj.map(e => exJSON._serializeSingular(e, templates, repeated, {identifierString, storeRepeated}));
     } else if (obj === null || obj === undefined) {
       return obj;
     }
@@ -25870,9 +25890,11 @@ class exJSON {
     return v;
   }
   static _deserializeSingular (values, {templates=[], repeated=[], id='I:', sr=true, constructors=[]}) {
-    if (isPrimitive(values)) {
+    if (!sr && isPrimitive(values)) {
       return values;
-    } else if (Array.isArray(values)) {
+    } else if (sr && isPrimitive(values) && typeof values === 'number') {
+      return repeated.get(values);
+    }else if (Array.isArray(values)) {
       let identifier = values.pop();
       if (typeof identifier === 'string' && identifier.startsWith(id)) {
         let template = templates.get(Number(identifier.slice(id.length))).split(',');
@@ -25895,7 +25917,7 @@ class exJSON {
           let result = {};
           template.forEach((p, i) => {
             let next = values[i];
-            if (Array.isArray(next)) {
+            if (Array.isArray(next) && next.length > 0) {
               next = exJSON._deserializeSingular(next, {templates, repeated, id, sr, constructors});
             } else if (typeof next === 'number' && sr) {
               next = repeated.get(next);
@@ -26026,7 +26048,6 @@ class exJSON {
 }
 
 module.exports = exJSON;
-
 
 
 
@@ -27942,6 +27963,17 @@ var avgCoordinates = function avgCoordinates(a, b, c) {
   return { x: (a.x + b.x + c.x) / 3, y: (a.y + b.y + c.y) / 3, z: (a.z + b.z + c.z) / 3 };
 };
 
+var depthFirst = function depthFirst(top, cb) {
+  var current = top;
+  current.children = current.children.filter(function (x) {
+    return x !== undefined;
+  });
+  cb(current.value);
+  current.children.forEach(function (child) {
+    return depthFirst(child, cb);
+  });
+};
+
 var GameObject = function GameObject(props) {
   //expecting prop root
   var pPos = props.parentPos;
@@ -27952,6 +27984,12 @@ var GameObject = function GameObject(props) {
   var s = function s(num) {
     return num * (props.scale || 2);
   };
+  // let path = "";
+  // if (props.isRoot) {
+  //   depthFirst(props.root, value => {
+  //     path += s(x(value.pos)) + " " + s(y(value.pos)) + " " + s(z(value.pos)) + ",";
+  //   });
+  // }
   var cx = s(x(pos));
   var cy = s(y(pos));
   var cz = s(z(pos));
@@ -27962,47 +28000,55 @@ var GameObject = function GameObject(props) {
 
     return { x: p[0], y: p[1], z: p[2] };
   };
-  return _react2.default.createElement(
-    _aframeReact.Entity,
-    null,
-    children.filter(function (child) {
-      return child !== undefined;
-    }).filter(function (child) {
-      return !child.value.name.startsWith('Bone');
-    }).map(function (child) {
-      return child.value.pos;
-    }).map(function (p, i) {
-      return _react2.default.createElement(_aframeReact.Entity, { key: i, meshline: 'lineWidth: ' + (15 - depth) + '; path: ' + cx + ' ' + cy + ' ' + cz + ', ' + s(x(p)) + ' ' + s(y(p)) + ' ' + s(z(p)) + ';' });
-    }),
-    pPos ? children.filter(function (child) {
-      return child !== undefined;
-    }).filter(function (child) {
-      return !child.value.name.startsWith('Bone');
-    }).map(function (child) {
-      return child.value.pos;
-    }).map(function (p, i) {
-      var current = convertToObj([cx, cy, cz]);
-      var child = convertToObj([x(p), y(p), z(p)], s);
-      var parent = convertToObj([x(pPos), y(pPos), z(pPos)], s);
-      var angle = findAngle(current, child, parent);
-      var avg = avgCoordinates(current, child, parent);
-      if (!Number.isNaN(angle)) {
-        return _react2.default.createElement(_aframeReact.Entity, { key: i,
-          text: 'value: ' + (angle + "°"),
-          position: 1.6 * avg.x + ' ' + 1.6 * avg.y + ' ' + 1.6 * avg.z,
-          'look-controls': '' });
-      } else {
-        return '';
-      }
-    }) : '',
-    children.filter(function (child) {
-      return child !== undefined;
-    }).filter(function (child) {
-      return !child.value.name.startsWith('bone');
-    }).map(function (child, i) {
-      return _react2.default.createElement(GameObject, { key: i, root: child, depth: depth + 1, scale: props.scale || 2, parentPos: pos });
-    })
-  );
+  if (depth >= 10) {
+    return null;
+  } else {
+    return _react2.default.createElement(
+      _aframeReact.Entity,
+      null,
+      children.filter(function (child) {
+        return child !== undefined;
+      }).filter(function (child) {
+        return !child.value.name.startsWith('Bone');
+      }).map(function (child) {
+        return child.value.pos;
+      }).map(function (p, i) {
+        return _react2.default.createElement(_aframeReact.Entity, { key: i, meshline: 'lineWidth: ' + (15 - depth) + '; path: ' + cx + ' ' + cy + ' ' + cz + ', ' + s(x(p)) + ' ' + s(y(p)) + ' ' + s(z(p)) + ';' });
+      }),
+      pPos ? children.filter(function (child) {
+        return child !== undefined;
+      }).filter(function (child) {
+        return !child.value.name.startsWith('Bone');
+      }).map(function (child) {
+        return child.value.pos;
+      }).map(function (p, i) {
+        var current = convertToObj([cx, cy, cz]);
+        var child = convertToObj([x(p), y(p), z(p)], s);
+        var parent = convertToObj([x(pPos), y(pPos), z(pPos)], s);
+        var angle = findAngle(current, child, parent);
+        var avg = avgCoordinates(current, child, parent);
+        if (!Number.isNaN(angle)) {
+          return _react2.default.createElement(_aframeReact.Entity, { key: i,
+            text: 'value: ' + (angle + "°"),
+            position: 1.6 * avg.x + ' ' + 1.6 * avg.y + ' ' + 1.6 * avg.z,
+            'look-controls': '',
+            visible: props.renderText });
+        } else {
+          return '';
+        }
+      }) : '',
+      children.filter(function (child) {
+        return child !== undefined;
+      }).filter(function (child) {
+        return !child.value.name.startsWith('bone');
+      }).map(function (child, i) {
+        return _react2.default.createElement(GameObject, { key: i, root: child,
+          depth: depth + 1, scale: props.scale || 2,
+          parentPos: pos, renderText: props.renderText,
+          isRoot: false });
+      })
+    );
+  }
 };
 
 exports.default = GameObject;
@@ -28067,7 +28113,7 @@ var Floor = function Floor(props) {
     geometry: { primitive: 'plane' },
     material: { shader: 'flat', src: props.src, side: 'double' },
     scale: '360 140 1',
-    position: '0 0 0',
+    position: '0 -1 0',
     rotation: '-90 0 0' });
 };
 exports.default = Floor;
@@ -62590,11 +62636,17 @@ var _aframeMeshlineComponent = __webpack_require__(264);
 
 var _aframeMeshlineComponent2 = _interopRequireDefault(_aframeMeshlineComponent);
 
+var _reactNotifyToast = __webpack_require__(652);
+
+var _reactNotifyToast2 = _interopRequireDefault(_reactNotifyToast);
+
 var _exjson = __webpack_require__(268);
 
 var _exjson2 = _interopRequireDefault(_exjson);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -62620,23 +62672,46 @@ var App = function (_React$Component) {
       selectedPoints: []
     };
     _this.socket = io.connect(window.location.origin);
-    _this.socket.on('current', function (data) {
-      data = JSON.parse(data);
-      if (!this.state.currentData) {
-        this.setState({ currentData: data.current || [] });
-      } else {
-        this.forward.enqueue(data.current || []);
-        if (!this.state.paused) {
-          this.go();
+    var path = window.location.pathname.split('/').filter(function (x) {
+      return x !== "";
+    });
+    if (path.length > 0) {
+      _this.socket.on('connect', function () {
+        this.socket.emit("retrieve", path[0], function (data) {
+          if (data !== null) {
+            this.forward = new (Function.prototype.bind.apply(_Structures2.default.Queue, [null].concat(_toConsumableArray(_exjson2.default.parse(data)))))();
+            setInterval(function () {
+              if (!this.state.paused) {
+                this.go();
+              }
+            }.bind(this), 33.33);
+          } else {
+            window.location.replace(window.location.origin);
+          }
+        }.bind(this));
+      }.bind(_this));
+    } else {
+      _this.socket.on('current', function (data) {
+        data = _exjson2.default.parse(data);
+        if (!this.state.currentData) {
+          this.setState({ currentData: data.current || [] });
+        } else {
+          this.forward.enqueue(data.current || []);
+          if (!this.state.paused) {
+            this.go();
+          }
         }
-      }
-    }.bind(_this));
+      }.bind(_this));
+    }
     return _this;
   }
 
   _createClass(App, [{
     key: 'componentDidMount',
     value: function componentDidMount() {
+      var path = window.location.pathname.split('/').filter(function (x) {
+        return x !== "";
+      });
       window.addEventListener('keydown', function (e) {
         var key = e.which;
         if (key === 81 && this.state.paused) {
@@ -62652,6 +62727,13 @@ var App = function (_React$Component) {
           //pause
           this.setPause(!this.state.paused);
           console.log(this.state.paused ? 'paused' : 'unpaused');
+        } else if (key === 82 && path.length === 0) {
+          var _back$storage;
+
+          var data = (_back$storage = this.back.storage).concat.apply(_back$storage, _toConsumableArray(this.backFill.storage)).concat([this.state.currentData]);
+          this.socket.emit("save", _exjson2.default.stringify(data), function (index) {
+            _reactNotifyToast.notify.show('Your 3D self was saved at ' + (window.location.origin + '/' + index.url) + ' for ' + index.duration / 60000 + ' minutes!', "success");
+          });
         }
       }.bind(this));
     }
@@ -62682,7 +62764,7 @@ var App = function (_React$Component) {
         }
         poss = this.backFill.length ? this.backFill.pop() : this.forward.dequeue();
         next = next || poss;
-        if (this.back.length > 500) {
+        if (this.back.length > 3000) {
           this.back = this.back.pull(400);
         }
         this.setState({ currentData: next });
@@ -62731,16 +62813,22 @@ var App = function (_React$Component) {
     key: 'render',
     value: function render() {
       if (this.state.opened) {
-        return _react2.default.createElement(_rootScene2.default, {
-          data: this.state.currentData,
-          setPause: this.setPause.bind(this),
-          isPaused: this.state.isPaused,
-          selectedPoints: this.state.selectedPoints,
-          setSelectedPoints: this.updateSelectedPoints.bind(this) });
+        return _react2.default.createElement(
+          'div',
+          null,
+          _react2.default.createElement(_reactNotifyToast2.default, null),
+          _react2.default.createElement(_rootScene2.default, {
+            data: this.state.currentData,
+            setPause: this.setPause.bind(this),
+            isPaused: this.state.isPaused,
+            selectedPoints: this.state.selectedPoints,
+            setSelectedPoints: this.updateSelectedPoints.bind(this) })
+        );
       } else {
         return _react2.default.createElement(
           'div',
           null,
+          _react2.default.createElement(_reactNotifyToast2.default, null),
           _react2.default.createElement(_openingScreen2.default, {
             start: this.start.bind(this) })
         );
@@ -62754,6 +62842,351 @@ var App = function (_React$Component) {
 ;
 
 _reactDom2.default.render(_react2.default.createElement(App, null), document.getElementById('root'));
+
+/***/ }),
+/* 652 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+exports.notify = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(40);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactDom = __webpack_require__(174);
+
+var _reactDom2 = _interopRequireDefault(_reactDom);
+
+var _objectAssign = __webpack_require__(653);
+
+var _objectAssign2 = _interopRequireDefault(_objectAssign);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var notificationWrapperId = 'notification-wrapper';
+var defaultTimeout = 5000; // ms
+var animationDuration = 300; // ms
+
+/* Colors */
+var colorWhite = 'white';
+var colorError = '#E85742';
+var colorSuccess = '#55CA92';
+var colorWarning = '#F5E273';
+var textColorWarning = '#333333';
+
+/* React Notification Component */
+
+var Toast = function (_React$Component) {
+	_inherits(Toast, _React$Component);
+
+	function Toast() {
+		var _ref;
+
+		var _temp, _this, _ret;
+
+		_classCallCheck(this, Toast);
+
+		for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+			args[_key] = arguments[_key];
+		}
+
+		return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = Toast.__proto__ || Object.getPrototypeOf(Toast)).call.apply(_ref, [this].concat(args))), _this), _this.state = {
+			styleParent: null
+		}, _temp), _possibleConstructorReturn(_this, _ret);
+	}
+
+	_createClass(Toast, [{
+		key: 'getStyles',
+		value: function getStyles() {
+			var styles = {};
+
+			var containerStyle = {
+				position: 'fixed',
+				width: '50%',
+				margin: '0 auto',
+				right: '0px',
+				top: '-100px',
+				left: '0px',
+				textAlign: 'center',
+				zIndex: '999',
+				pointerEvents: 'none',
+				transition: 'all ' + animationDuration + 'ms ease',
+				transform: 'translateY(0px)',
+				// Vendor Prefixes
+				msTransition: 'all ' + animationDuration + 'ms ease',
+				msTransform: 'translateY(0px)',
+				WebkitTransition: 'all ' + animationDuration + 'ms ease',
+				WebkitTransform: 'translateY(0px)',
+				OTransition: 'all ' + animationDuration + 'ms ease',
+				OTransform: 'translateY(0px)',
+				MozTransition: 'all ' + animationDuration + 'ms ease',
+				MozTransform: 'translateY(0px)'
+			};
+
+			var contentStyle = {
+				cursor: 'pointer',
+				display: 'inline',
+				width: 'auto',
+				borderRadius: '0 0 4px 4px',
+				backgroundColor: 'white',
+				padding: '10px 30px',
+				pointerEvents: 'all'
+			};
+
+			/* If type is set, merge toast action styles with base */
+			switch (this.props.type) {
+				case 'success':
+					var successStyle = {
+						backgroundColor: colorSuccess,
+						color: colorWhite
+					};
+					styles.content = (0, _objectAssign2.default)({}, contentStyle, successStyle);
+					break;
+
+				case 'error':
+					var errorStyle = {
+						backgroundColor: colorError,
+						color: colorWhite
+					};
+					styles.content = (0, _objectAssign2.default)({}, contentStyle, errorStyle);
+					break;
+
+				case 'warning':
+					var warningStyle = {
+						backgroundColor: colorWarning,
+						color: textColorWarning
+					};
+					styles.content = (0, _objectAssign2.default)({}, contentStyle, warningStyle);
+					break;
+
+				case 'custom':
+					var customStyle = {
+						backgroundColor: this.props.color.background,
+						color: this.props.color.text
+					};
+					styles.content = (0, _objectAssign2.default)({}, contentStyle, customStyle);
+					break;
+
+				default:
+					styles.content = (0, _objectAssign2.default)({}, contentStyle);
+					break;
+			}
+
+			styles.container = containerStyle;
+
+			return styles;
+		}
+	}, {
+		key: 'getVisibleState',
+		value: function getVisibleState(context) {
+			var base = this.getStyles().container;
+
+			// Show
+			var stylesShow = {
+				transform: 'translateY(108px)',
+				msTransform: 'translateY(108px)',
+				WebkitTransform: 'translateY(108px)',
+				OTransform: 'translateY(108px)',
+				MozTransform: 'translateY(108px)'
+			};
+
+			setTimeout(function () {
+				context.updateStyle(base, stylesShow);
+			}, 100); // wait 100ms after the component is called to animate toast.
+
+			if (this.props.timeout === -1) {
+				return;
+			}
+
+			// Hide after timeout
+			var stylesHide = {
+				transform: 'translateY(-108px)',
+				msTransform: 'translateY(-108px)',
+				WebkitTransform: 'translateY(-108px)',
+				OTransform: 'translateY(-108px)',
+				MozTransform: 'translateY(-108px)'
+			};
+
+			setTimeout(function () {
+				context.updateStyle(base, stylesHide);
+			}, this.props.timeout);
+		}
+	}, {
+		key: 'updateStyle',
+		value: function updateStyle(base, update) {
+			this.setState({ styleParent: (0, _objectAssign2.default)({}, base, update) });
+		}
+	}, {
+		key: 'getBaseStyle',
+		value: function getBaseStyle() {
+			this.setState({ styleParent: this.getStyles().container });
+		}
+	}, {
+		key: 'componentDidMount',
+		value: function componentDidMount() {
+			this.getBaseStyle();
+			this.getVisibleState(this);
+		}
+	}, {
+		key: 'render',
+		value: function render() {
+			var _props = this.props,
+			    text = _props.text,
+			    type = _props.type;
+
+			var styles = this.getStyles();
+			var styleParent = this.state.styleParent;
+
+			return _react2.default.createElement(
+				'div',
+				{ className: 'toast-notification', style: styleParent },
+				_react2.default.createElement(
+					'span',
+					{ className: type, style: styles.content },
+					text
+				)
+			);
+		}
+	}]);
+
+	return Toast;
+}(_react2.default.Component);
+
+/* Private Functions */
+
+/* Render React component */
+
+
+Toast.propTypes = {
+	text: _react.PropTypes.string,
+	timeout: _react.PropTypes.number,
+	type: _react.PropTypes.string,
+	color: _react.PropTypes.object,
+	style: _react.PropTypes.oneOfType([_react.PropTypes.object, _react.PropTypes.bool])
+};
+function renderToast(text, type, timeout, color) {
+	_reactDom2.default.render(_react2.default.createElement(Toast, { text: text, timeout: timeout, type: type, color: color }), document.getElementById(notificationWrapperId));
+}
+
+/* Unmount React component */
+function hideToast() {
+	_reactDom2.default.unmountComponentAtNode(document.getElementById(notificationWrapperId));
+}
+
+/* Public functions */
+
+/* Show Animated Toast Message */
+function show(text, type, timeout, color) {
+	if (!document.getElementById(notificationWrapperId).hasChildNodes()) {
+		var renderTimeout = timeout;
+
+		// Use default timeout if not set.
+		if (!renderTimeout) {
+			renderTimeout = defaultTimeout;
+		}
+
+		// Render Component with Props.
+		renderToast(text, type, renderTimeout, color);
+
+		if (timeout === -1) {
+			return;
+		}
+
+		// Unmount react component after the animation finished.
+		setTimeout(function () {
+			hideToast();
+		}, renderTimeout + animationDuration);
+	}
+}
+
+/* Export notification container */
+
+var _class = function (_React$Component2) {
+	_inherits(_class, _React$Component2);
+
+	function _class() {
+		_classCallCheck(this, _class);
+
+		return _possibleConstructorReturn(this, (_class.__proto__ || Object.getPrototypeOf(_class)).apply(this, arguments));
+	}
+
+	_createClass(_class, [{
+		key: 'render',
+		value: function render() {
+			return _react2.default.createElement('div', { id: notificationWrapperId });
+		}
+	}]);
+
+	return _class;
+}(_react2.default.Component);
+
+/* Export notification functions */
+
+
+exports.default = _class;
+var notify = exports.notify = {
+	show: show
+};
+
+/***/ }),
+/* 653 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var propIsEnumerable = Object.prototype.propertyIsEnumerable;
+
+function ToObject(val) {
+	if (val == null) {
+		throw new TypeError('Object.assign cannot be called with null or undefined');
+	}
+
+	return Object(val);
+}
+
+function ownEnumerableKeys(obj) {
+	var keys = Object.getOwnPropertyNames(obj);
+
+	if (Object.getOwnPropertySymbols) {
+		keys = keys.concat(Object.getOwnPropertySymbols(obj));
+	}
+
+	return keys.filter(function (key) {
+		return propIsEnumerable.call(obj, key);
+	});
+}
+
+module.exports = Object.assign || function (target, source) {
+	var from;
+	var keys;
+	var to = ToObject(target);
+
+	for (var s = 1; s < arguments.length; s++) {
+		from = arguments[s];
+		keys = ownEnumerableKeys(Object(from));
+
+		for (var i = 0; i < keys.length; i++) {
+			to[keys[i]] = from[keys[i]];
+		}
+	}
+
+	return to;
+};
+
 
 /***/ })
 /******/ ]);

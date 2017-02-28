@@ -30,7 +30,8 @@ export default class RootScene extends React.Component {
     super(props);
     this.state = {
       currentData: props.data || [],
-      selected: []
+      selected: [],
+      renderText: false
     };
     this.props = props;
   }
@@ -66,11 +67,19 @@ export default class RootScene extends React.Component {
         }
       });
     }
+    window.addEventListener('keydown', function(e) {
+      if (e.which === 88) {
+        this.setState({renderText: !this.state.renderText});
+      }
+    }.bind(this));
   }
   render () {
     return (
-    <a-scene id="vr_scene">
-      <a-assets></a-assets>
+    <a-scene id="vr_scene" pool__enemy="size : 100; dynamic: true" vr-mode-ui="">
+      <a-assets>
+        <a-asset-item id="football-obj" src="/resources/AmericanFootball.obj"></a-asset-item>
+        <a-asset-item id="football-mtl" src="/resources/AmericanFootball.obj.mtl"></a-asset-item>
+      </a-assets>
       <Camera/>
       <Entity light={{type: 'ambient', color: '#888'}}/>
       <Entity light={{type: 'directional', intensity: 0.5}} position='-1 1 0'/>
@@ -82,10 +91,20 @@ export default class RootScene extends React.Component {
         this.state.currentData
         .filter(x => x !== undefined)
         .map((rootObject,i) => 
-            <GameObject key={i} root={rootObject}/>
+            <GameObject key={i} root={rootObject} isRoot={true} renderText={this.state.renderText}/>
           )
         :
         ''
+      }
+      {
+        this.state.currentData !== undefined ?
+        this.state.currentData
+        .filter(x => x !== undefined)
+        .filter(x => x.value.name.startsWith('Football'))
+        .map(football => 
+          <Entity obj-model="obj: #football-obj; mtl: #football-mtl"></Entity>
+        )
+        : ''
       }
     </a-scene>);
   }
