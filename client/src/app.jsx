@@ -39,8 +39,7 @@ class App extends React.Component {
       }.bind(this));
     } else {
       this.socket.on('current', function(data) {
-        console.log('here');
-        data = exJSON.parse(data);
+        data = JSON.parse(data);
         if (!this.state.currentData) {
           this.setState({currentData: data.current || []});
         } else {

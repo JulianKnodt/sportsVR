@@ -3,7 +3,6 @@ const app = express();
 const path = require('path');
 const bodyParser = require('body-parser');
 const tree = require('./Tree.js');
-const exJSON = require('exjson');
 const DataDelegate = require('./dataDelegate');
 const staticPath = path.resolve(__dirname, './client');
 const port = process.env.PORT || 9090;
@@ -67,7 +66,7 @@ const fix = data => {
 app.post('/data', (req, res) => {
   currentData = createHierarchy(fix(req.body));
   res.status(200).end();
-  io.sockets.emit('current', exJSON.stringify({current: currentData}));
+  io.sockets.emit('current', JSON.stringify({current: currentData}));
 });
 
 let server = app.listen(port, () => {
@@ -76,7 +75,7 @@ let server = app.listen(port, () => {
 
 io = require('socket.io')(server);
 io.on('connection', (socket) => {
-  socket.emit('current', exJSON.stringify({current: currentData}));
+  socket.emit('current', JSON.stringify({current: currentData}));
   socket.on('save', (data, cb) => {
     cb(dataDelegate.addData(data));
   });
