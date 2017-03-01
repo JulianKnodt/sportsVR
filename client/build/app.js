@@ -63037,7 +63037,7 @@ var App = function (_React$Component) {
       }.bind(_this));
     } else {
       _this.socket.on('current', function (data) {
-        data = JSON.parse(data);
+        data = _exjson2.default.parse(data);
         if (!this.state.currentData) {
           this.setState({ currentData: data.current || [] });
         } else {
